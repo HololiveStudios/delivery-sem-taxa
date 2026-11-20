@@ -1,0 +1,3328 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Sem Taxa — Liberte seu Lucro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --fire: #FF4D00;
+      --fire-glow: #FF6B35;
+      --gold: #F5A623;
+      --bg: #080608;
+      --bg2: #0D0B0F;
+      --surface: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #F2EDE8;
+      --muted: #8A7F76;
+      --danger: #FF3B30;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── NOISE ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .025;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* ── CURSOR ── */
+    #cursor {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: var(--fire);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform .15s ease;
+      mix-blend-mode: exclusion;
+    }
+
+    #cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 77, 0, .5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform .4s cubic-bezier(.25, .46, .45, .94);
+    }
+
+    /* ══ FEATURE 1: TOP ALERT BAR ══ */
+    #tax-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      height: 32px;
+      background: linear-gradient(90deg, rgba(255, 59, 48, .15) 0%, rgba(255, 77, 0, .1) 50%, rgba(255, 59, 48, .15) 100%);
+      border-bottom: 1px solid rgba(255, 59, 48, .2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+    }
+
+    .tax-bar-label {
+      color: var(--muted);
+    }
+
+    #tax-bar-val {
+      color: var(--danger);
+      font-size: .75rem;
+      transition: color .3s;
+    }
+
+    #tax-bar-val.high {
+      color: #ff1a0e;
+      text-shadow: 0 0 12px rgba(255, 26, 14, .5);
+    }
+
+    .tax-bar-pulse {
+      width: 6px;
+      height: 6px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: pulse 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.6);
+      }
+    }
+
+    /* ── AMBIENT BG ── */
+    #ambient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .bg-layer {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      will-change: opacity;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
+    }
+
+    /* ══ FEATURE 4: MONEY CANVAS ══ */
+    #money-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+
+    #money-canvas.active {
+      opacity: 1;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 32px;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(8, 6, 8, .9) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: .1em;
+      color: var(--text);
+      position: relative;
+    }
+
+    .nav-logo span {
+      color: var(--fire);
+    }
+
+    /* ══ FEATURE 5: NAV LOSS BAR ══ */
+    .nav-live-loss {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 59, 48, .08);
+      border: 1px solid rgba(255, 59, 48, .15);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: all .4s ease;
+    }
+
+    .nav-live-loss.visible {
+      opacity: 1;
+    }
+
+    .nav-live-loss-val {
+      color: var(--danger);
+      font-size: .7rem;
+      min-width: 60px;
+    }
+
+    .nav-live-dot {
+      width: 5px;
+      height: 5px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+
+    .nav-cta {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .75rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--fire);
+      padding: 10px 22px;
+      border: none;
+      border-radius: 100px;
+      cursor: none;
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-cta::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, .15), transparent);
+      transform: translateX(-100%);
+      transition: transform .4s ease;
+    }
+
+    .nav-cta:hover::after {
+      transform: translateX(100%);
+    }
+
+    .nav-cta:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 77, 0, .5);
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 80px 8vw 0;
+      margin-top: 50px;
+      margin-bottom: 50px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Syne', sans-serif;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 28px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 12vw, 11rem);
+      line-height: .92;
+      letter-spacing: .01em;
+      color: var(--text);
+      margin-bottom: 24px;
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    .hero-title .accent {
+      color: var(--fire);
+    }
+
+    .hero-title .outline {
+      -webkit-text-stroke: 2px var(--text);
+      color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 460px;
+      line-height: 1.7;
+      margin-bottom: 36px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    /* ══ FEATURE 1: LIVE CALCULATOR ══ */
+    #live-calc {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid rgba(255, 77, 0, .15);
+      border-radius: 20px;
+      padding: 24px 28px;
+      margin-bottom: 36px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .calc-row:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .calc-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .calc-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      color: var(--fire);
+      min-width: 60px;
+      text-align: right;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 160px;
+      height: 3px;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+      background: linear-gradient(to right, var(--fire) var(--pct, 50%), rgba(255, 255, 255, .1) var(--pct, 50%));
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--fire);
+      box-shadow: 0 0 10px rgba(255, 77, 0, .5);
+      cursor: pointer;
+    }
+
+    .calc-result {
+      border-top: 1px solid rgba(255, 255, 255, .05);
+      padding-top: 18px;
+      margin-top: 4px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .calc-result-label {
+      font-size: .72rem;
+      font-weight: 300;
+      color: var(--muted);
+    }
+
+    #calc-output {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      color: var(--danger);
+      line-height: 1;
+      transition: color .3s;
+      text-shadow: 0 0 20px rgba(255, 59, 48, .3);
+    }
+
+    #calc-period {
+      font-size: .65rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(20px);
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .85rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: var(--fire);
+      color: #fff;
+      border: none;
+      padding: 16px 36px;
+      border-radius: 100px;
+      cursor: none;
+      transition: transform .2s, box-shadow .3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, .15), transparent);
+      transform: translateX(-100%);
+      transition: transform .4s ease;
+    }
+
+    .btn-primary:hover::after {
+      transform: translateX(100%);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 12px 40px rgba(255, 77, 0, .45);
+    }
+
+    .btn-ghost {
+      font-family: 'Syne', sans-serif;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 16px 32px;
+      border-radius: 100px;
+      cursor: none;
+      transition: border-color .2s, color .2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(255, 255, 255, .3);
+      color: var(--text);
+    }
+
+    .hero-numbers {
+      position: absolute;
+      bottom: 48px;
+      right: 8vw;
+      display: flex;
+      gap: 40px;
+      opacity: 0;
+    }
+
+    .hero-stat-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      color: var(--fire);
+      line-height: 1;
+    }
+
+    .hero-stat-label {
+      font-size: .65rem;
+      font-weight: 500;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--fire), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    .scroll-label {
+      font-size: .6rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    @keyframes scrollPulse {
+
+      0%,
+      100% {
+        opacity: .4;
+        transform: scaleY(.8);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scaleY(1);
+      }
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+      background: rgba(255, 77, 0, .05);
+    }
+
+    .marquee-track {
+      display: flex;
+      animation: marquee 18s linear infinite;
+      white-space: nowrap;
+    }
+
+    .marquee-item {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: .9rem;
+      letter-spacing: .2em;
+      color: var(--muted);
+      padding: 0 32px;
+      flex-shrink: 0;
+    }
+
+    .marquee-item.hot {
+      color: var(--fire);
+    }
+
+    @keyframes marquee {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* ══ FEATURE 2: GLOBAL COUNTER ══ */
+    #global-counter {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 150;
+      background: rgba(10, 8, 12, .9);
+      border: 1px solid rgba(255, 59, 48, .25);
+      border-radius: 16px;
+      padding: 14px 18px;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .6s, transform .6s;
+      pointer-events: none;
+    }
+
+    #global-counter.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .counter-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .52rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    #counter-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      color: var(--danger);
+      line-height: 1;
+    }
+
+    .counter-sub {
+      font-size: .5rem;
+      color: var(--muted);
+      margin-top: 2px;
+      font-weight: 300;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 24px;
+    }
+
+    /* ── PAIN ── */
+    #pain {
+      padding: 140px 8vw;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .pain-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      line-height: .94;
+      letter-spacing: .01em;
+    }
+
+    .pain-title .red {
+      color: var(--danger);
+    }
+
+    .pain-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pain-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: border-color .3s, transform .3s;
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    .pain-card:hover {
+      border-color: rgba(255, 77, 0, .3);
+      transform: translateX(4px);
+    }
+
+    .pain-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .pain-card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      margin-bottom: 4px;
+    }
+
+    .pain-card-desc {
+      font-size: .82rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── NUMBERS ── */
+    #numbers {
+      padding: 100px 8vw;
+      background: linear-gradient(135deg, rgba(255, 77, 0, .05) 0%, transparent 60%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .numbers-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      margin-top: 60px;
+    }
+
+    .number-cell {
+      background: var(--bg2);
+      padding: 48px 40px;
+      text-align: center;
+    }
+
+    .number-cell:first-child {
+      background: rgba(255, 77, 0, .08);
+    }
+
+    .cell-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      color: var(--fire);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .cell-label {
+      font-size: .78rem;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: .05em;
+      line-height: 1.5;
+    }
+
+    .numbers-callout {
+      margin-top: 48px;
+      background: linear-gradient(135deg, rgba(255, 77, 0, .12) 0%, rgba(255, 77, 0, .04) 100%);
+      border: 1px solid rgba(255, 77, 0, .2);
+      border-radius: 20px;
+      padding: 32px 40px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .callout-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.8rem;
+      color: var(--danger);
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .callout-text {
+      font-size: .95rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.6;
+      max-width: 560px;
+    }
+
+    .callout-text strong {
+      color: var(--fire);
+      font-weight: 600;
+    }
+
+    /* ── SOLUTION ── */
+    #solution {
+      padding: 140px 8vw;
+    }
+
+    .solution-header {
+      margin-bottom: 80px;
+      max-width: 700px;
+    }
+
+    .solution-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      line-height: .92;
+      margin-bottom: 24px;
+    }
+
+    .solution-title .ghost {
+      -webkit-text-stroke: 1px rgba(255, 245, 228, .4);
+      color: transparent;
+    }
+
+    .solution-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .solution-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .sol-card {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      background: var(--surface);
+      transition: border-color .3s, background .3s, transform .3s;
+      opacity: 0;
+      transform: translateY(40px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sol-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--fire), transparent);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .sol-card:hover {
+      border-color: rgba(255, 77, 0, .2);
+      background: rgba(255, 77, 0, .04);
+      transform: translateY(-4px);
+    }
+
+    .sol-card:hover::before {
+      opacity: 1;
+    }
+
+    .sol-card.featured {
+      border-color: rgba(255, 77, 0, .3);
+      background: rgba(255, 77, 0, .06);
+    }
+
+    .sol-card.featured::before {
+      opacity: 1;
+    }
+
+    .sol-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      color: rgba(255, 77, 0, .15);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .sol-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .sol-desc {
+      font-size: .83rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .sol-tag {
+      display: inline-block;
+      margin-top: 16px;
+      font-family: 'Syne', sans-serif;
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--fire);
+      background: rgba(255, 77, 0, .1);
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    /* ── COMPARE ── */
+    #compare {
+      padding: 120px 8vw;
+      background: var(--bg2);
+    }
+
+    .compare-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      margin-bottom: 60px;
+      text-align: center;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table th {
+      padding: 20px 28px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .8rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .compare-table th:first-child {
+      background: rgba(255, 255, 255, .03);
+      color: var(--muted);
+      text-align: left;
+    }
+
+    .compare-table th.bad {
+      background: rgba(255, 59, 48, .08);
+      color: var(--danger);
+      text-align: center;
+    }
+
+    .compare-table th.good {
+      background: rgba(255, 77, 0, .12);
+      color: var(--fire);
+      text-align: center;
+    }
+
+    .compare-table td {
+      padding: 16px 28px;
+      font-size: .88rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .compare-table td:first-child {
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .compare-table td.bad {
+      background: rgba(255, 59, 48, .04);
+      color: var(--danger);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .compare-table td.good {
+      background: rgba(255, 77, 0, .04);
+      color: var(--fire);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .compare-table tr:hover td {
+      background: rgba(255, 255, 255, .02);
+    }
+
+    /* ── PRICING ── */
+    #pricing {
+      padding: 140px 8vw;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .pricing-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 5.5vw, 5rem);
+      line-height: .92;
+      margin-bottom: 24px;
+    }
+
+    .pricing-sub {
+      font-size: .95rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .include-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .include-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: .88rem;
+      color: var(--text);
+    }
+
+    .include-list li::before {
+      content: '✓';
+      width: 22px;
+      height: 22px;
+      background: rgba(255, 77, 0, .15);
+      color: var(--fire);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .pricing-card {
+      background: linear-gradient(135deg, rgba(255, 77, 0, .08) 0%, rgba(255, 77, 0, .02) 100%);
+      border: 1px solid rgba(255, 77, 0, .25);
+      border-radius: 28px;
+      padding: 48px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pricing-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(255, 77, 0, .15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .price-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--fire);
+      background: rgba(255, 77, 0, .12);
+      padding: 6px 14px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-bottom: 28px;
+    }
+
+    .price-main {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5.5rem;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .price-main sup {
+      font-size: 2rem;
+      vertical-align: super;
+      color: var(--fire);
+    }
+
+    .price-note {
+      font-size: .8rem;
+      font-weight: 300;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .price-or {
+      font-family: 'Syne', sans-serif;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .price-or::before,
+    .price-or::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 35%;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .price-or::before {
+      left: 0;
+    }
+
+    .price-or::after {
+      right: 0;
+    }
+
+    .price-installment {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+
+    .price-anchor {
+      font-size: .78rem;
+      font-weight: 300;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    .price-anchor strong {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    /* ── FAQ ── */
+    #faq {
+      padding: 120px 8vw;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .faq-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      margin-bottom: 60px;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 0;
+      cursor: none;
+    }
+
+    .faq-q {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      color: var(--text);
+      user-select: none;
+    }
+
+    .faq-q .arrow {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      flex-shrink: 0;
+      transition: transform .3s, background .3s;
+      color: var(--muted);
+    }
+
+    .faq-item.open .faq-q .arrow {
+      transform: rotate(45deg);
+      background: var(--fire);
+      border-color: var(--fire);
+      color: #fff;
+    }
+
+    .faq-a {
+      font-size: .88rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.75;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s ease, margin-top .3s;
+    }
+
+    .faq-item.open .faq-a {
+      max-height: 200px;
+      margin-top: 16px;
+    }
+
+    /* ── FOOTER CTA ── */
+    #footer-cta {
+      padding: 140px 8vw;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #footer-cta::before {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 77, 0, .12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .footer-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      line-height: .9;
+      margin-bottom: 28px;
+    }
+
+    .footer-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--muted);
+      margin-bottom: 48px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    /* ── QUIZ OVERLAY ── */
+    #quizOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(5, 5, 8, .97);
+      backdrop-filter: blur(24px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .4s ease;
+      overflow-y: auto;
+    }
+
+    #quizOverlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .quiz-shell {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(15, 12, 18, .95);
+      border: 1px solid rgba(255, 77, 0, .2);
+      border-radius: 28px;
+      padding: 48px 40px;
+      position: relative;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, .6), 0 0 80px rgba(255, 77, 0, .08);
+      margin: auto;
+    }
+
+    .quiz-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: none;
+      transition: border-color .2s, color .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quiz-close:hover {
+      border-color: var(--fire);
+      color: var(--fire);
+    }
+
+    .quiz-progress {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 36px;
+    }
+
+    .quiz-progress-dot {
+      height: 3px;
+      flex: 1;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background .4s;
+    }
+
+    .quiz-progress-dot.done {
+      background: var(--fire);
+    }
+
+    .quiz-step {
+      display: none;
+    }
+
+    .quiz-step.active {
+      display: block;
+    }
+
+    .quiz-step-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 16px;
+    }
+
+    .quiz-q {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      line-height: 1.1;
+      margin-bottom: 28px;
+      color: var(--text);
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .quiz-opt {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-align: left;
+      color: var(--text);
+      font-size: .9rem;
+      font-weight: 400;
+      cursor: none;
+      transition: border-color .2s, background .2s, transform .15s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quiz-opt:hover {
+      border-color: rgba(255, 77, 0, .4);
+      background: rgba(255, 77, 0, .06);
+      transform: translateX(4px);
+    }
+
+    .quiz-opt-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .quiz-input-group {
+      margin-bottom: 12px;
+    }
+
+    .quiz-input-label {
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .quiz-input {
+      width: 100%;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s;
+      cursor: text;
+    }
+
+    .quiz-input:focus {
+      border-color: rgba(255, 77, 0, .5);
+    }
+
+    .quiz-input::placeholder {
+      color: var(--muted);
+    }
+
+    .quiz-consent {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 16px;
+    }
+
+    .quiz-consent input {
+      margin-top: 3px;
+      accent-color: var(--fire);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .quiz-consent label {
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── RESULT ── */
+    .result-score-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid var(--fire);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+      box-shadow: 0 0 40px rgba(255, 77, 0, .3), inset 0 0 20px rgba(255, 77, 0, .05);
+    }
+
+    .result-score-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: var(--fire);
+      line-height: 1;
+    }
+
+    .result-score-sub {
+      font-size: .55rem;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .result-loss {
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 24px;
+      background: rgba(255, 59, 48, .06);
+      border: 1px solid rgba(255, 59, 48, .15);
+      border-radius: 16px;
+    }
+
+    .result-loss-label {
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+    }
+
+    .result-loss-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.2rem;
+      color: var(--danger);
+      line-height: 1;
+      filter: drop-shadow(0 0 20px rgba(255, 59, 48, .4));
+    }
+
+    .result-loss-period {
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 300;
+      margin-top: 4px;
+    }
+
+    .result-plan {
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 14px;
+      background: rgba(255, 77, 0, .06);
+      border: 1px solid rgba(255, 77, 0, .15);
+      border-radius: 12px;
+    }
+
+    .result-plan-label {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .result-plan-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--fire);
+    }
+
+    .result-msg {
+      text-align: center;
+      font-size: .85rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    /* ══ FEATURE 3: MOCK DELIVERY PREVIEW ══ */
+    #mock-preview {
+      border: 1px solid rgba(255, 77, 0, .2);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, .02);
+      display: none;
+    }
+
+    #mock-preview.show {
+      display: block;
+    }
+
+    .mock-header {
+      background: linear-gradient(135deg, rgba(255, 77, 0, .15), rgba(255, 77, 0, .05));
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 77, 0, .1);
+    }
+
+    .mock-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--fire);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .mock-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: .9rem;
+      color: var(--text);
+    }
+
+    .mock-url {
+      font-size: .6rem;
+      color: var(--fire);
+      font-weight: 400;
+      letter-spacing: .05em;
+    }
+
+    .mock-body {
+      padding: 14px 18px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .mock-item {
+      font-size: .75rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .mock-item strong {
+      color: var(--text);
+    }
+
+    .mock-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: .55rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: rgba(255, 77, 0, .12);
+      color: var(--fire);
+      padding: 3px 8px;
+      border-radius: 100px;
+      margin-left: auto;
+    }
+
+    .btn-wa {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: #25D366;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .85rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 16px 24px;
+      border-radius: 14px;
+      border: none;
+      cursor: none;
+      transition: transform .2s, box-shadow .3s;
+      text-decoration: none;
+    }
+
+    .btn-wa:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 30px rgba(37, 211, 102, .3);
+    }
+
+    /* ══ FEATURE 6: CELEBRATION OVERLAY ══ */
+    #celebrate {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    #celebrate.show {
+      opacity: 1;
+    }
+
+    .celebrate-ring {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 2px solid var(--fire);
+      box-shadow: 0 0 60px rgba(255, 77, 0, .4), inset 0 0 40px rgba(255, 77, 0, .1);
+      animation: celebratePop .6s cubic-bezier(.34, 1.56, .64, 1) forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+
+    @keyframes celebratePop {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    /* ════════════════════════════════════
+   STICKY MOBILE CTA BAR
+════════════════════════════════════ */
+    #mobile-cta-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 300;
+      padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(8, 6, 8, 1) 60%, rgba(8, 6, 8, 0));
+      backdrop-filter: blur(16px);
+    }
+
+    #mobile-cta-bar .btn-primary {
+      width: 100%;
+      border-radius: 14px;
+      font-size: .9rem;
+      padding: 16px 24px;
+      box-shadow: 0 0 30px rgba(255, 77, 0, .3);
+    }
+
+    #mobile-cta-bar .mcta-note {
+      text-align: center;
+      font-size: .62rem;
+      color: var(--muted);
+      margin-top: 8px;
+      letter-spacing: .05em;
+    }
+
+    /* ════════════════════════════════════
+   TABLET — max 900px
+════════════════════════════════════ */
+    @media(max-width:900px) {
+
+      /* Touch: sem cursor customizado */
+      body {
+        cursor: auto;
+      }
+
+      #cursor,
+      #cursor-ring {
+        display: none;
+      }
+
+      button,
+      a {
+        cursor: pointer;
+      }
+
+      /* Top bar: texto mais curto */
+      #tax-bar {
+        font-size: .55rem;
+        letter-spacing: .06em;
+        gap: 6px;
+      }
+
+      .tax-bar-label:last-child {
+        display: none;
+      }
+
+      /* Nav */
+      nav {
+        padding: 14px 20px;
+        gap: 12px;
+      }
+
+      .nav-live-loss {
+        display: none;
+      }
+
+      .nav-cta {
+        padding: 9px 18px;
+        font-size: .7rem;
+      }
+
+      /* Hero */
+      #hero {
+        padding: 90px 6vw 80px;
+        min-height: 100svh;
+        justify-content: flex-start;
+        padding-top: max(90px, 20vw);
+      }
+
+      .hero-eyebrow {
+        margin-bottom: 16px;
+      }
+
+      .hero-sub {
+        font-size: .95rem;
+        max-width: 100%;
+        margin-bottom: 28px;
+      }
+
+      .hero-numbers {
+        display: none;
+      }
+
+      .scroll-hint {
+        display: none;
+      }
+
+      /* Calculator */
+      #live-calc {
+        max-width: 100%;
+        padding: 20px;
+      }
+
+      .calc-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 6px 12px;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      .calc-label {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .calc-val {
+        grid-column: 2;
+        grid-row: 1;
+        text-align: right;
+        min-width: 48px;
+      }
+
+      input[type=range] {
+        grid-column: 1/3;
+        grid-row: 2;
+        width: 100%;
+      }
+
+      #calc-output {
+        font-size: 2rem;
+      }
+
+      /* CTA group */
+      .hero-cta-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .hero-cta-group .btn-primary,
+      .hero-cta-group .btn-ghost {
+        text-align: center;
+        width: 100%;
+      }
+
+      /* Pain */
+      #pain {
+        grid-template-columns: 1fr;
+        padding: 80px 6vw;
+        gap: 48px;
+      }
+
+      .pain-card {
+        padding: 16px 18px;
+      }
+
+      .pain-card:hover {
+        transform: none;
+      }
+
+      /* sem hover shift no touch */
+
+      /* Numbers */
+      #numbers {
+        padding: 80px 6vw;
+      }
+
+      .numbers-grid {
+        grid-template-columns: 1fr;
+        border-radius: 16px;
+      }
+
+      .number-cell {
+        padding: 32px 24px;
+      }
+
+      .numbers-callout {
+        padding: 24px;
+        gap: 16px;
+      }
+
+      .callout-num {
+        font-size: 2.2rem;
+      }
+
+      /* Solution */
+      #solution {
+        padding: 80px 6vw;
+      }
+
+      .solution-header {
+        margin-bottom: 48px;
+      }
+
+      .solution-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .sol-card {
+        padding: 22px 18px;
+      }
+
+      .sol-card:hover {
+        transform: none;
+      }
+
+      /* Compare */
+      #compare {
+        padding: 80px 6vw;
+      }
+
+      .compare-table {
+        font-size: .78rem;
+        min-width: 480px;
+      }
+
+      .compare-table th,
+      .compare-table td {
+        padding: 12px 14px;
+      }
+
+      /* Pricing */
+      #pricing {
+        grid-template-columns: 1fr;
+        padding: 80px 6vw;
+        gap: 48px;
+      }
+
+      .pricing-card {
+        padding: 36px 28px;
+      }
+
+      .price-main {
+        font-size: 4.5rem;
+      }
+
+      /* FAQ */
+      #faq {
+        padding: 80px 6vw;
+        max-width: 100%;
+      }
+
+      .faq-q {
+        font-size: .88rem;
+      }
+
+      /* Footer CTA */
+      #footer-cta {
+        padding: 100px 6vw;
+      }
+
+      /* Global counter: repositionar acima do bar de CTA */
+      #global-counter {
+        bottom: 80px;
+        right: 16px;
+        padding: 10px 14px;
+        border-radius: 12px;
+      }
+
+      #counter-val {
+        font-size: 1.2rem;
+      }
+
+      .counter-label,
+      .counter-sub {
+        font-size: .46rem;
+      }
+
+      /* Quiz overlay */
+      #quizOverlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .quiz-shell {
+        border-radius: 24px 24px 0 0;
+        padding: 36px 24px calc(24px + env(safe-area-inset-bottom));
+        max-height: 92svh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .quiz-close {
+        top: 16px;
+        right: 18px;
+      }
+
+      .quiz-q {
+        font-size: 1.6rem;
+      }
+
+      .quiz-opt {
+        padding: 14px 16px;
+        font-size: .85rem;
+      }
+
+      /* Mobile CTA bar: mostrar */
+      #mobile-cta-bar {
+        display: block;
+      }
+
+      /* Adicionar padding na última seção para não sobrepor o bar */
+      #footer-cta {
+        padding-bottom: 100px;
+      }
+    }
+
+    /* ════════════════════════════════════
+   MOBILE — max 480px
+════════════════════════════════════ */
+    @media(max-width:480px) {
+
+      /* Top bar simplificado */
+      #tax-bar {
+        height: 28px;
+        font-size: .5rem;
+        gap: 5px;
+        padding: 0 12px;
+      }
+
+      .tax-bar-pulse {
+        width: 5px;
+        height: 5px;
+      }
+
+      /* Nav ainda mais compacto */
+      nav {
+        padding: 12px 16px;
+        top: 28px;
+      }
+
+      .nav-logo {
+        font-size: 1.1rem;
+      }
+
+      .nav-cta {
+        padding: 8px 14px;
+        font-size: .65rem;
+        letter-spacing: .1em;
+      }
+
+      /* Hero */
+      #hero {
+        padding: max(76px, 22vw) 5vw 80px;
+      }
+
+      .hero-eyebrow {
+        font-size: .6rem;
+        letter-spacing: .2em;
+        margin-bottom: 14px;
+      }
+
+      .hero-title {
+        font-size: clamp(3.2rem, 17vw, 5rem);
+        margin-bottom: 18px;
+      }
+
+      .hero-title .outline {
+        -webkit-text-stroke: 1px var(--text);
+      }
+
+      .hero-sub {
+        font-size: .88rem;
+        margin-bottom: 22px;
+      }
+
+      /* Calculator compacto */
+      #live-calc {
+        padding: 16px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+      }
+
+      .calc-label {
+        font-size: .58rem;
+      }
+
+      .calc-val {
+        font-size: .95rem;
+      }
+
+      #calc-output {
+        font-size: 1.7rem;
+      }
+
+      #calc-period {
+        font-size: .56rem;
+      }
+
+      .calc-result {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      /* Buttons */
+      .btn-primary {
+        font-size: .78rem;
+        padding: 14px 28px;
+      }
+
+      .btn-ghost {
+        font-size: .72rem;
+        padding: 13px 24px;
+      }
+
+      /* Marquee */
+      .marquee-item {
+        font-size: .75rem;
+        padding: 0 20px;
+      }
+
+      /* Pain */
+      #pain {
+        padding: 60px 5vw;
+        gap: 36px;
+      }
+
+      .pain-title {
+        font-size: clamp(2.6rem, 14vw, 4rem);
+      }
+
+      .pain-icon {
+        font-size: 1.1rem;
+      }
+
+      .pain-card-title {
+        font-size: .82rem;
+      }
+
+      .pain-card-desc {
+        font-size: .75rem;
+      }
+
+      /* Numbers */
+      #numbers {
+        padding: 60px 5vw;
+      }
+
+      .cell-val {
+        font-size: clamp(2.2rem, 12vw, 3.5rem);
+      }
+
+      .cell-label {
+        font-size: .7rem;
+      }
+
+      .callout-num {
+        font-size: 1.8rem;
+      }
+
+      .callout-text {
+        font-size: .82rem;
+      }
+
+      /* Solution */
+      #solution {
+        padding: 60px 5vw;
+      }
+
+      .solution-title {
+        font-size: clamp(2.4rem, 13vw, 3.5rem);
+      }
+
+      .solution-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .sol-num {
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+      }
+
+      .sol-title {
+        font-size: .9rem;
+      }
+
+      .sol-card {
+        padding: 20px 16px;
+      }
+
+      /* Compare */
+      #compare {
+        padding: 60px 5vw;
+      }
+
+      .compare-title {
+        font-size: clamp(2rem, 12vw, 3rem);
+        margin-bottom: 36px;
+      }
+
+      .compare-table {
+        font-size: .72rem;
+        min-width: 420px;
+      }
+
+      .compare-table th,
+      .compare-table td {
+        padding: 10px 10px;
+      }
+
+      /* Pricing */
+      #pricing {
+        padding: 60px 5vw;
+        gap: 36px;
+      }
+
+      .pricing-headline {
+        font-size: clamp(2.2rem, 12vw, 3.5rem);
+      }
+
+      .pricing-sub {
+        font-size: .85rem;
+      }
+
+      .include-list li {
+        font-size: .8rem;
+      }
+
+      .price-main {
+        font-size: 3.8rem;
+      }
+
+      .price-main sup {
+        font-size: 1.5rem;
+      }
+
+      .price-installment {
+        font-size: 2rem;
+      }
+
+      .price-anchor {
+        font-size: .72rem;
+      }
+
+      .pricing-card {
+        padding: 28px 20px;
+      }
+
+      /* FAQ */
+      #faq {
+        padding: 60px 5vw;
+      }
+
+      .faq-title {
+        font-size: clamp(2.2rem, 12vw, 3rem);
+        margin-bottom: 40px;
+      }
+
+      .faq-q {
+        font-size: .82rem;
+      }
+
+      .faq-a {
+        font-size: .8rem;
+      }
+
+      .faq-item {
+        padding: 22px 0;
+      }
+
+      /* Footer CTA */
+      #footer-cta {
+        padding: 60px 5vw 110px;
+      }
+
+      .footer-title {
+        font-size: clamp(2.5rem, 14vw, 4rem);
+      }
+
+      .footer-sub {
+        font-size: .88rem;
+      }
+
+      #footer-cta .btn-primary {
+        font-size: .85rem;
+        padding: 15px 32px;
+      }
+
+      /* Quiz em sheet completo */
+      #quizOverlay {
+        padding: 0;
+      }
+
+      .quiz-shell {
+        max-height: 96svh;
+        padding: 28px 18px calc(20px + env(safe-area-inset-bottom));
+        border-radius: 20px 20px 0 0;
+      }
+
+      .quiz-q {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+      }
+
+      .quiz-opt {
+        padding: 12px 14px;
+        font-size: .82rem;
+        gap: 10px;
+      }
+
+      .quiz-opt-icon {
+        font-size: 1rem;
+      }
+
+      .quiz-input {
+        padding: 12px 14px;
+        font-size: .88rem;
+      }
+
+      .result-score-ring {
+        width: 100px;
+        height: 100px;
+      }
+
+      .result-score-num {
+        font-size: 2rem;
+      }
+
+      .result-loss-val {
+        font-size: 2.6rem;
+      }
+
+      .result-plan-name {
+        font-size: 1.5rem;
+      }
+
+      .btn-wa {
+        font-size: .78rem;
+        padding: 14px 18px;
+      }
+
+      /* Global counter: esconder em telas muito pequenas (fica atrás do bar) */
+      #global-counter {
+        display: none;
+      }
+
+      /* Mobile CTA bar maior no iPhone SE */
+      #mobile-cta-bar .btn-primary {
+        font-size: .82rem;
+        padding: 15px 20px;
+      }
+    }
+
+    /* ════════════════════════════════════
+   LANDSCAPE MOBILE
+════════════════════════════════════ */
+    @media(max-width:900px) and (orientation:landscape) and (max-height:500px) {
+      #hero {
+        min-height: auto;
+        padding: 100px 6vw 48px;
+      }
+
+      .hero-title {
+        font-size: clamp(2.4rem, 8vw, 4rem);
+      }
+
+      #live-calc {
+        display: none;
+      }
+
+      /* esconde calc em landscape para não bloquear CTA */
+      .hero-cta-group {
+        flex-direction: row;
+      }
+
+      .hero-cta-group .btn-primary,
+      .hero-cta-group .btn-ghost {
+        width: auto;
+      }
+
+      #quizOverlay {
+        align-items: center;
+      }
+
+      .quiz-shell {
+        max-height: 95vw;
+        border-radius: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- CURSOR -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- ══ FEATURE 1: TOP ALERT BAR ══ -->
+  <div id="tax-bar">
+    <div class="tax-bar-pulse"></div>
+    <span class="tax-bar-label">Você perde estimados</span>
+    <span id="tax-bar-val">R$ —</span>
+    <span class="tax-bar-label">por mês em taxa — role para ver como parar</span>
+  </div>
+
+  <!-- ══ MOBILE STICKY CTA BAR ══ -->
+  <div id="mobile-cta-bar">
+    <button class="btn-primary" onclick="openQuiz()">🔥 Diagnóstico Gratuito — 60 seg</button>
+    <p class="mcta-note">Sem cartão · Sem compromisso · Resultado na hora</p>
+  </div>
+
+  <!-- AMBIENT BG -->
+  <div id="ambient">
+    <div class="bg-layer" id="bg-1"
+      style="background-image:url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000&auto=format&fit=crop');filter:grayscale(70%) brightness(0.25) contrast(1.2);opacity:.8;">
+    </div>
+    <div class="bg-layer" id="bg-2"
+      style="background-image:url('https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?q=80&w=2000&auto=format&fit=crop');filter:grayscale(100%) brightness(0.18) sepia(1) hue-rotate(-30deg) saturate(2);">
+    </div>
+    <div class="bg-layer" id="bg-3"
+      style="background-image:url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=2000&auto=format&fit=crop');filter:brightness(0.3);">
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-logo">DELIVERY<span>SEM</span>TAXA</div>
+    <button class="nav-cta" onclick="openQuiz()">Diagnóstico Grátis</button>
+  </nav>
+
+  <!-- ══ FEATURE 4: MONEY CANVAS ══ -->
+  <canvas id="money-canvas"></canvas>
+
+  <!-- ══ FEATURE 2: GLOBAL COUNTER ══ -->
+  <div id="global-counter">
+    <div class="counter-label">Perdido em taxa no BR hoje</div>
+    <div id="counter-val">R$ 0</div>
+    <div class="counter-sub">estimativa acumulada desde meia-noite</div>
+  </div>
+
+  <!-- ════════════ HERO ════════════ -->
+  <section id="hero">
+    <!-- ══ FEATURE 7: A/B HEADLINE ══ -->
+    <p class="hero-eyebrow" id="h-eyebrow">A dura realidade do delivery no Brasil</p>
+    <h1 class="hero-title" id="h-title"><!-- filled by JS --></h1>
+    <p class="hero-sub" id="h-sub">Em 60 segundos, descubra exatamente quanto você perde todo mês — e veja como ter
+      seu próprio sistema sem mensalidade.</p>
+
+    <!-- ══ FEATURE 1: LIVE CALCULATOR ══ -->
+    <div id="live-calc">
+      <div class="calc-row">
+        <span class="calc-label">Pedidos por dia</span>
+        <input type="range" id="sl-orders" min="1" max="80" value="20" oninput="updateCalc()">
+        <span class="calc-val" id="sl-orders-val">20</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Ticket médio (R$)</span>
+        <input type="range" id="sl-ticket" min="5" max="120" value="35" oninput="updateCalc()">
+        <span class="calc-val" id="sl-ticket-val">R$35</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">Taxa do app</span>
+        <input type="range" id="sl-fee" min="8" max="27" value="15" oninput="updateCalc()">
+        <span class="calc-val" id="sl-fee-val">15%</span>
+      </div>
+      <div class="calc-result">
+        <div>
+          <div class="calc-result-label">Você perde por mês</div>
+          <div id="calc-period" style="font-size:.6rem;color:var(--muted);margin-top:2px;">Em 12 meses =
+            R$37.800 em taxa</div>
+        </div>
+        <div id="calc-output">R$ 3.150</div>
+      </div>
+    </div>
+
+    <div class="hero-cta-group" id="h-cta">
+      <button class="btn-primary" id="hero-diag-btn" onclick="openQuiz()">Fazer Diagnóstico Gratuito</button>
+      <a href="#pain" class="btn-ghost">Ver como funciona</a>
+    </div>
+
+    <div class="scroll-hint" id="scroll-hint">
+      <div class="scroll-line"></div>
+      <span class="scroll-label">Role para baixo</span>
+    </div>
+
+    <div class="hero-numbers" id="h-numbers">
+      <div class="hero-stat">
+        <div class="hero-stat-val">27%</div>
+        <div class="hero-stat-label">Taxa máxima<br>por pedido</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">R$55bi</div>
+        <div class="hero-stat-label">Mercado<br>delivery BR</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">300k+</div>
+        <div class="hero-stat-label">Restaurantes<br>em apps</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span class="marquee-item hot">● Sem mensalidade</span><span class="marquee-item">Pix + Cartão
+        integrado</span><span class="marquee-item hot">● Sistema vitalício</span><span class="marquee-item">Suporte para
+        colocar no ar</span><span class="marquee-item hot">● Zero taxa por
+        pedido</span><span class="marquee-item">Cardápio editável</span><span class="marquee-item hot">● Frete
+        automático</span><span class="marquee-item">Acompanhamento do pedido</span><span class="marquee-item hot">● Sem
+        contrato</span><span class="marquee-item">O sistema é seu para
+        sempre</span>
+      <span class="marquee-item hot">● Sem mensalidade</span><span class="marquee-item">Pix + Cartão
+        integrado</span><span class="marquee-item hot">● Sistema vitalício</span><span class="marquee-item">Suporte para
+        colocar no ar</span><span class="marquee-item hot">● Zero taxa por
+        pedido</span><span class="marquee-item">Cardápio editável</span><span class="marquee-item hot">● Frete
+        automático</span><span class="marquee-item">Acompanhamento do pedido</span><span class="marquee-item hot">● Sem
+        contrato</span><span class="marquee-item">O sistema é seu para
+        sempre</span>
+    </div>
+  </div>
+
+  <!-- ════════════ PAIN ════════════ -->
+  <section id="pain">
+    <div>
+      <p class="section-label reveal-left">A Ferida</p>
+      <h2 class="pain-title reveal-left">A MORDIDA<br><span class="red">INVISÍVEL</span><br>DO APP</h2>
+      <p class="reveal-left"
+        style="font-size:.9rem;font-weight:300;color:var(--muted);line-height:1.7;margin-top:20px;max-width:400px;">
+        Você não vende por aplicativo. <em>Você trabalha para ele.</em> A cada pedido que sai da sua cozinha, a
+        plataforma fica com até 27% — sem fazer nenhum hambúrguer.</p>
+    </div>
+    <div class="pain-cards">
+      <div class="pain-card">
+        <div class="pain-icon">💸</div>
+        <div>
+          <div class="pain-card-title">Taxa que devora o lucro</div>
+          <div class="pain-card-desc">10% a 27% de cada pedido vai direto pra plataforma. No fim do mês, o
+            dinheiro sumiu e você não entende por quê.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">🔴</div>
+        <div>
+          <div class="pain-card-title">Plataforma cai no pico</div>
+          <div class="pain-card-desc">Sexta às 19h. Fila enorme. O app trava. Você perde pedidos e não pode
+            fazer absolutamente nada.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">🎭</div>
+        <div>
+          <div class="pain-card-title">Cardápio igual ao do concorrente</div>
+          <div class="pain-card-desc">Seu delivery vira uma linha num feed de dezenas. Sem identidade, sem
+            diferencial, sem recorrência.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">📱</div>
+        <div>
+          <div class="pain-card-title">WhatsApp lotado de "cadê meu pedido?"</div>
+          <div class="pain-card-desc">Sem rastreio, o cliente te liga. Você para tudo para responder.
+            Retrabalho constante.</div>
+        </div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">📦</div>
+        <div>
+          <div class="pain-card-title">Frete no chute</div>
+          <div class="pain-card-desc">Você cobra um valor fixo e na metade das vezes perde na entrega. Na
+            outra, o cliente acha caro.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ NUMBERS ════════════ -->
+  <section id="numbers">
+    <p class="section-label reveal">O que os números dizem</p>
+    <h2 class="reveal"
+      style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,4rem);max-width:600px;line-height:.95;">
+      QUANTO VOCÊ<br>PERDE POR MÊS?</h2>
+    <div class="numbers-grid">
+      <div class="number-cell reveal">
+        <div class="cell-val">R$787</div>
+        <div class="cell-label">7 pedidos/dia<br>Ticket R$25 · Taxa 15%</div>
+      </div>
+      <div class="number-cell reveal">
+        <div class="cell-val">R$3.150</div>
+        <div class="cell-label">20 pedidos/dia<br>Ticket R$35 · Taxa 15%</div>
+      </div>
+      <div class="number-cell reveal">
+        <div class="cell-val">R$11.550</div>
+        <div class="cell-label">35 pedidos/dia<br>Ticket R$55 · Taxa 20%</div>
+      </div>
+    </div>
+    <div class="numbers-callout reveal">
+      <div class="callout-num">R$600</div>
+      <div class="callout-text">Você não está comprando um sistema. Você está <strong>parando de pagar R$3.150
+          todo mês</strong> para sempre. Em menos de 30 dias, o sistema se paga — e o dinheiro fica no seu
+        caixa.</div>
+    </div>
+  </section>
+
+  <!-- ════════════ SOLUTION ════════════ -->
+  <section id="solution">
+    <div class="solution-header">
+      <p class="section-label reveal">Como funciona</p>
+      <h2 class="solution-title reveal">SEU LINK.<br><span class="ghost">SUA REGRA.</span><br>SEU DINHEIRO.</h2>
+      <p class="solution-sub reveal">Não é "mais um app". É o seu sistema de pedidos — com a sua cara, sem taxa
+        por pedido, sem depender de ninguém.</p>
+    </div>
+    <div class="solution-grid">
+      <div class="sol-card featured">
+        <div class="sol-num">01</div>
+        <div class="sol-title">Link de pedidos próprio</div>
+        <div class="sol-desc">Seu cliente abre o seu link, vê o seu cardápio, faz o pedido. Sem ver o
+          concorrente ao lado.</div><span class="sol-tag">Zero taxa por pedido</span>
+      </div>
+      <div class="sol-card">
+        <div class="sol-num">02</div>
+        <div class="sol-title">Cardápio bonito e editável</div>
+        <div class="sol-desc">Mude preço, foto, disponibilidade em segundos. Sem precisar de técnico.</div><span
+          class="sol-tag">Admin simples</span>
+      </div>
+      <div class="sol-card">
+        <div class="sol-num">03</div>
+        <div class="sol-title">Pix + Cartão integrado</div>
+        <div class="sol-desc">Gateway de pagamento pronto. O dinheiro cai direto na sua conta.</div><span
+          class="sol-tag">Gateway incluso</span>
+      </div>
+      <div class="sol-card">
+        <div class="sol-num">04</div>
+        <div class="sol-title">Frete automático</div>
+        <div class="sol-desc">Calculado pela distância real. Sem chute, sem perder na entrega.</div><span
+          class="sol-tag">Automático</span>
+      </div>
+      <div class="sol-card">
+        <div class="sol-num">05</div>
+        <div class="sol-title">Cliente acompanha o pedido</div>
+        <div class="sol-desc">Status em tempo real. Acabou o "cadê meu pedido?" no WhatsApp.</div><span
+          class="sol-tag">Rastreio incluso</span>
+      </div>
+      <div class="sol-card">
+        <div class="sol-num">06</div>
+        <div class="sol-title">Painel de controle</div>
+        <div class="sol-desc">Seus pedidos, caixa e lucro por produto. Simples, sem planilha.</div><span
+          class="sol-tag">Controle total</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ COMPARE ════════════ -->
+  <section id="compare">
+    <h2 class="compare-title reveal">A DIFERENÇA É SIMPLES</h2>
+    <div style="overflow-x:auto;">
+      <table class="compare-table reveal">
+        <thead>
+          <tr>
+            <th>Critério</th>
+            <th class="bad">Depender do App</th>
+            <th class="good">Link Próprio (Seu Sistema)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Taxa por pedido</td>
+            <td class="bad">10% a 27%</td>
+            <td class="good">0%</td>
+          </tr>
+          <tr>
+            <td>Estabilidade no pico</td>
+            <td class="bad">App pode cair</td>
+            <td class="good">Sistema estável (seu)</td>
+          </tr>
+          <tr>
+            <td>Identidade visual</td>
+            <td class="bad">Igual ao concorrente</td>
+            <td class="good">Sua cara, sua marca</td>
+          </tr>
+          <tr>
+            <td>O cliente é seu?</td>
+            <td class="bad">Não — é da plataforma</td>
+            <td class="good">Sim — direto com você</td>
+          </tr>
+          <tr>
+            <td>Editar cardápio</td>
+            <td class="bad">Limitado pela plataforma</td>
+            <td class="good">Você edita na hora</td>
+          </tr>
+          <tr>
+            <td>Status do pedido</td>
+            <td class="bad">O cliente te liga</td>
+            <td class="good">Rastreio automático</td>
+          </tr>
+          <tr>
+            <td>Mensalidade</td>
+            <td class="bad">Taxa em cada venda</td>
+            <td class="good">Pagamento único. Vitalício.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ════════════ PRICING ════════════ -->
+  <section id="pricing">
+    <div class="reveal-left">
+      <p class="section-label">Investimento único</p>
+      <h2 class="pricing-headline">UM PAGAMENTO.<br>PARA SEMPRE.</h2>
+      <p class="pricing-sub">Você não está pagando R$600. Você está parando de perder dinheiro em taxa todo mês —
+        para sempre. O sistema é seu. Sem mensalidade. Sem contrato.</p>
+      <ul class="include-list">
+        <li>Sistema completo de pedidos com seu link</li>
+        <li>Cardápio editável com fotos e combos</li>
+        <li>Cálculo automático de frete por localização</li>
+        <li>Acompanhamento do pedido pelo cliente</li>
+        <li>Gateway: Pix + cartão de crédito e débito</li>
+        <li>Painel de controle e caixa simples</li>
+        <li>Suporte para colocar no ar</li>
+        <li>Você migra aos poucos — não precisa largar o app hoje</li>
+      </ul>
+    </div>
+    <div class="reveal-right">
+      <div class="pricing-card">
+        <div class="price-badge">Pagamento Único · Vitalício</div>
+        <div class="price-main"><sup>R$</sup>600</div>
+        <div class="price-note">sem mensalidade · sistema é seu para sempre</div>
+        <div class="price-or">ou</div>
+        <div class="price-installment">10× de R$60 sem juros</div>
+        <div class="price-anchor">Quem faz 20 pedidos/dia com taxa 15% paga <strong>R$3.150/mês</strong>. O
+          sistema se paga em menos de 7 dias.</div>
+        <button class="btn-primary" style="width:100%;border-radius:14px;" onclick="openQuiz()">Fazer
+          Diagnóstico Gratuito</button>
+        <p style="margin-top:14px;font-size:.72rem;color:var(--muted);text-align:center;">Sem compromisso. Se
+          não fizer sentido, a gente te fala.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ FAQ ════════════ -->
+  <section id="faq">
+    <h2 class="faq-title reveal">PERGUNTAS<br>FREQUENTES</h2>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Preciso parar de usar o iFood?<span class="arrow">+</span>
+      </div>
+      <div class="faq-a">Não. Muitos clientes continuam no app para captar cliente novo e usam o link próprio para
+        fidelizar. Os pedidos recorrentes passam a vir direto, sem taxa. Você migra no seu ritmo.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Consigo editar o cardápio depois?<span class="arrow">+</span>
+      </div>
+      <div class="faq-a">Sim. Você acessa o painel e edita preço, produto, foto e disponibilidade quando quiser.
+        Sem precisar de técnico, sem custo extra.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Aceita Pix e cartão?<span class="arrow">+</span></div>
+      <div class="faq-a">Sim. Gateway de pagamento integrado. Pix, cartão de crédito e débito. O dinheiro cai
+        direto na sua conta.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">E se eu não tiver motoboy?<span class="arrow">+</span></div>
+      <div class="faq-a">Sem problema. O sistema funciona para retirada no balcão ou entrega própria. Você
+        configura como preferir.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Quanto tempo para colocar no ar?<span class="arrow">+</span>
+      </div>
+      <div class="faq-a">Em média 24 a 48 horas para estar funcionando com cardápio configurado e link no ar. A
+        gente te acompanha.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Tem suporte depois de configurar?<span class="arrow">+</span>
+      </div>
+      <div class="faq-a">Sim. O suporte está incluso para colocar no ar e fazer os primeiros ajustes. Você não
+        fica sozinho.</div>
+    </div>
+  </section>
+
+  <!-- ════════════ FOOTER CTA ════════════ -->
+  <section id="footer-cta">
+    <h2 class="footer-title reveal">PARE DE PAGAR<br>TAXA PRA VENDER<br><span style="color:var(--fire);">SUA PRÓPRIA
+        COMIDA.</span></h2>
+    <p class="footer-sub reveal">Em 60 segundos você descobre sua economia estimada e o plano ideal para o seu
+      volume.</p>
+    <button class="btn-primary reveal" style="font-size:1rem;padding:18px 48px;" onclick="openQuiz()">Fazer
+      Diagnóstico Gratuito</button>
+    <p class="reveal" style="margin-top:20px;font-size:.75rem;color:var(--muted);">Sem cartão. Sem compromisso.
+      Diagnóstico grátis.</p>
+  </section>
+
+  <!-- ════════════ QUIZ OVERLAY ════════════ -->
+  <div id="quizOverlay">
+    <div class="quiz-shell">
+      <button class="quiz-close" onclick="closeQuiz()">×</button>
+      <div class="quiz-progress" id="quizProgress">
+        <div class="quiz-progress-dot done" id="dot-1"></div>
+        <div class="quiz-progress-dot" id="dot-2"></div>
+        <div class="quiz-progress-dot" id="dot-3"></div>
+        <div class="quiz-progress-dot" id="dot-4"></div>
+        <div class="quiz-progress-dot" id="dot-5"></div>
+        <div class="quiz-progress-dot" id="dot-6"></div>
+        <div class="quiz-progress-dot" id="dot-7"></div>
+      </div>
+
+      <div class="quiz-step active" id="qs-1">
+        <p class="quiz-step-label">Pergunta 1 de 7</p>
+        <p class="quiz-q">Qual o tipo do seu negócio?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="qAnswer(1,'Pizzaria')"><span class="quiz-opt-icon">🍕</span>
+            Pizzaria</button>
+          <button class="quiz-opt" onclick="qAnswer(1,'Hamburgueria')"><span class="quiz-opt-icon">🍔</span>
+            Hamburgueria</button>
+          <button class="quiz-opt" onclick="qAnswer(1,'Marmitaria')"><span class="quiz-opt-icon">🥡</span>
+            Marmitaria / Restaurante</button>
+          <button class="quiz-opt" onclick="qAnswer(1,'Açaí')"><span class="quiz-opt-icon">🍨</span> Açaí /
+            Lanches</button>
+          <button class="quiz-opt" onclick="qAnswer(1,'Outro')"><span class="quiz-opt-icon">🍽️</span>
+            Outro</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" id="qs-2">
+        <p class="quiz-step-label">Pergunta 2 de 7</p>
+        <p class="quiz-q">Você vende em aplicativo hoje?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="qAnswer(2,'sim',20)"><span class="quiz-opt-icon">📲</span> Sim
+            (iFood, Anota Aí…)</button>
+          <button class="quiz-opt" onclick="qAnswer(2,'nao',10)"><span class="quiz-opt-icon">🚫</span> Não, só
+            pelo WhatsApp</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" id="qs-3">
+        <p class="quiz-step-label">Pergunta 3 de 7</p>
+        <p class="quiz-q">Quantos pedidos por dia em média?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="qAnswer(3,'0-10',15,7)"><span class="quiz-opt-icon">🌱</span> 0 a
+            10 pedidos</button>
+          <button class="quiz-opt" onclick="qAnswer(3,'10-30',25,20)"><span class="quiz-opt-icon">📈</span> 10
+            a 30 pedidos</button>
+          <button class="quiz-opt" onclick="qAnswer(3,'30+',35,35)"><span class="quiz-opt-icon">🔥</span> Mais
+            de 30 pedidos</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" id="qs-4">
+        <p class="quiz-step-label">Pergunta 4 de 7</p>
+        <p class="quiz-q">Qual o ticket médio por pedido?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="qAnswer(4,'ate-25',10,22)"><span class="quiz-opt-icon">💵</span>
+            Até R$ 25</button>
+          <button class="quiz-opt" onclick="qAnswer(4,'25-45',18,35)"><span class="quiz-opt-icon">💶</span> R$
+            25 a R$ 45</button>
+          <button class="quiz-opt" onclick="qAnswer(4,'45+',25,55)"><span class="quiz-opt-icon">💰</span>
+            Acima de R$ 45</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" id="qs-5">
+        <p class="quiz-step-label">Pergunta 5 de 7</p>
+        <p class="quiz-q">Qual a taxa média que você paga?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="qAnswer(5,'10%',10,0.10)"><span class="quiz-opt-icon">🟢</span>
+            Cerca de 10%</button>
+          <button class="quiz-opt" onclick="qAnswer(5,'15%',15,0.15)"><span class="quiz-opt-icon">🟡</span>
+            Cerca de 15%</button>
+          <button class="quiz-opt" onclick="qAnswer(5,'20%+',20,0.20)"><span class="quiz-opt-icon">🔴</span>
+            20% ou mais</button>
+          <button class="quiz-opt" onclick="qAnswer(5,'nao-sei',12,0.15)"><span class="quiz-opt-icon">❓</span>
+            Não sei ao certo</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" id="qs-6">
+        <p class="quiz-step-label">Pergunta 6 de 7</p>
+        <p class="quiz-q">Qual a sua maior dor hoje?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="qAnswer(6,'taxa',15)"><span class="quiz-opt-icon">💸</span> Taxa
+            alta que come o lucro</button>
+          <button class="quiz-opt" onclick="qAnswer(6,'instabilidade',12)"><span class="quiz-opt-icon">🔴</span>
+            Plataforma cai no pico</button>
+          <button class="quiz-opt" onclick="qAnswer(6,'pedido-errado',10)"><span class="quiz-opt-icon">😤</span> Pedido
+            bagunçado / errado</button>
+          <button class="quiz-opt" onclick="qAnswer(6,'identidade',12)"><span class="quiz-opt-icon">🎯</span>
+            Falta de identidade / diferencial</button>
+          <button class="quiz-opt" onclick="qAnswer(6,'outro',8)"><span class="quiz-opt-icon">📌</span> Outro
+            problema</button>
+        </div>
+      </div>
+
+      <div class="quiz-step" id="qs-7">
+        <p class="quiz-step-label">Última etapa</p>
+        <p class="quiz-q">Para onde enviamos seu plano?</p>
+        <div class="quiz-input-group"><label class="quiz-input-label">Nome do estabelecimento *</label><input
+            type="text" class="quiz-input" id="q-business" placeholder="Ex.: Burguer do João"></div>
+        <div class="quiz-input-group"><label class="quiz-input-label">Seu WhatsApp *</label><input type="tel"
+            class="quiz-input" id="q-phone" placeholder="(DDD) 9xxxx-xxxx"></div>
+        <div class="quiz-input-group"><label class="quiz-input-label">Cidade</label><input type="text"
+            class="quiz-input" id="q-city" placeholder="Ex.: Rio de Janeiro"></div>
+        <div class="quiz-consent"><input type="checkbox" id="q-consent" checked><label for="q-consent">Aceito
+            receber o plano por WhatsApp. Sem spam.</label></div>
+        <button class="btn-primary" style="width:100%;margin-top:20px;border-radius:14px;" onclick="submitQuiz()">Ver
+          meu resultado →</button>
+        <p id="quiz-error" style="color:var(--danger);font-size:.78rem;margin-top:10px;display:none;">Preencha o
+          nome e o WhatsApp para continuar.</p>
+      </div>
+
+      <!-- RESULT -->
+      <div id="quiz-result" style="display:none;">
+        <div class="result-score-ring">
+          <div class="result-score-num" id="r-score">0%</div>
+          <div class="result-score-sub">qualificado</div>
+        </div>
+        <div class="result-loss">
+          <div class="result-loss-label">Estimativa de taxa perdida</div>
+          <div class="result-loss-val" id="r-taxa">R$ 0</div>
+          <div class="result-loss-period">por mês em taxas de aplicativo</div>
+        </div>
+        <div class="result-plan">
+          <div class="result-plan-label">Plano recomendado</div>
+          <div class="result-plan-name" id="r-plan">—</div>
+        </div>
+
+        <!-- ══ FEATURE 3: MOCK DELIVERY PREVIEW ══ -->
+        <div id="mock-preview">
+          <div class="mock-header">
+            <div class="mock-avatar" id="mock-emoji">🍔</div>
+            <div>
+              <div class="mock-name" id="mock-biz-name">Seu Delivery</div>
+              <div class="mock-url" id="mock-url">deliverysemtaxa.com/seunome</div>
+            </div>
+            <div class="mock-badge">ONLINE</div>
+          </div>
+          <div class="mock-body">
+            <span class="mock-item">🛒 <strong>Cardápio pronto</strong></span>
+            <span class="mock-item" style="margin-left:12px;">✅ <strong>Pix ativo</strong></span>
+            <span class="mock-item" style="margin-left:12px;">📍 <strong>Frete auto</strong></span>
+          </div>
+        </div>
+
+        <p class="result-msg" id="r-msg">Calculando…</p>
+        <a id="r-wa-btn" class="btn-wa" href="#" target="_blank">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          </svg>
+          Receber meu plano no WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FEATURE 6: CELEBRATION OVERLAY ══ -->
+  <div id="celebrate">
+    <div class="celebrate-ring" id="celebrate-ring">🎉</div>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════
+    // CURSOR — apenas em dispositivos com mouse
+    // ════════════════════════════════════════
+    const isTouch = () => window.matchMedia('(hover:none)').matches || ('ontouchstart' in window);
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+
+    if (!isTouch()) {
+      let mx = 0, my = 0, rx = 0, ry = 0;
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; });
+      (function animRing() { rx += (mx - rx) * .12; ry += (my - ry) * .12; ring.style.left = (rx - 18) + 'px'; ring.style.top = (ry - 18) + 'px'; requestAnimationFrame(animRing); })();
+      document.querySelectorAll('button,a,[onclick]').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.style.transform = 'scale(2.5)');
+        el.addEventListener('mouseleave', () => cursor.style.transform = 'scale(1)');
+      });
+    } else {
+      if (cursor) cursor.style.display = 'none';
+      if (ring) ring.style.display = 'none';
+      document.body.style.cursor = 'auto';
+    }
+
+    // ════════════════════════════════════════
+    // FEATURE 7 — A/B HEADLINE TEST
+    // ════════════════════════════════════════
+    const headlines = [
+      { title: 'VOCÊ<br><span class="outline">PAGA</span><br><span class="accent">TAXA</span><br>TODO MÊS.', variant: 'H1' },
+      { title: 'QUANTO<br>VOCÊ<br><span class="accent">PERDE</span><br><span class="outline">EM TAXA?</span>', variant: 'H2' },
+      { title: 'VOCÊ<br>RALA.<br><span class="accent">A TAXA</span><br><span class="outline">LEVA.</span>', variant: 'H3' },
+      { title: 'TODO<br>PEDIDO<br><span class="accent">PAGA</span><br><span class="outline">PEDÁGIO.</span>', variant: 'H4' },
+      { title: 'PARE DE<br><span class="accent">ALUGAR</span><br>SEU PRÓPRIO<br><span class="outline">CLIENTE.</span>', variant: 'H5' },
+      { title: 'EM 60s,<br>VEJA O<br><span class="accent">ROMBO</span><br><span class="outline">DA TAXA.</span>', variant: 'H6' },
+    ];
+
+    const abVariant = Math.floor(Math.random() * 3);
+    document.getElementById('h-title').innerHTML = headlines[abVariant].title;
+    // track click
+    document.getElementById('hero-diag-btn').addEventListener('click', () => {
+      try { const d = JSON.parse(localStorage.getItem('ab') || '{}'); d['variant_' + headlines[abVariant].variant] = (d['variant_' + headlines[abVariant].variant] || 0) + 1; localStorage.setItem('ab', JSON.stringify(d)); } catch (e) { }
+    });
+
+    // ════════════════════════════════════════
+    // FEATURE 1 — LIVE CALCULATOR
+    // ════════════════════════════════════════
+    function updateCalc() {
+      const orders = +document.getElementById('sl-orders').value;
+      const ticket = +document.getElementById('sl-ticket').value;
+      const fee = +document.getElementById('sl-fee').value / 100;
+      const monthly = Math.round(orders * 30 * ticket * fee);
+      const annual = monthly * 12;
+      document.getElementById('sl-orders-val').textContent = orders;
+      document.getElementById('sl-ticket-val').textContent = 'R$' + ticket;
+      document.getElementById('sl-fee-val').textContent = fee * 100 + '%';
+      document.getElementById('calc-output').textContent = 'R$ ' + monthly.toLocaleString('pt-BR');
+      document.getElementById('calc-period').textContent = 'Em 12 meses = R$' + annual.toLocaleString('pt-BR') + ' em taxa';
+      // update slider gradient
+      ['sl-orders', 'sl-ticket', 'sl-fee'].forEach(id => {
+        const el = document.getElementById(id);
+        const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1) + '%';
+        el.style.setProperty('--pct', pct);
+      });
+      // update top bar & nav
+      updateNavLoss(monthly);
+      // pulse output if high
+      const out = document.getElementById('calc-output');
+      out.style.color = monthly > 5000 ? '#ff1a0e' : 'var(--danger)';
+    }
+    function updateNavLoss(val) {
+      document.getElementById('tax-bar-val').textContent = 'R$ ' + val.toLocaleString('pt-BR');
+      const el = document.getElementById('tax-bar-val');
+      el.classList.toggle('high', val > 5000);
+    }
+    // init slider gradients & calc
+    ['sl-orders', 'sl-ticket', 'sl-fee'].forEach(id => {
+      const el = document.getElementById(id);
+      const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1) + '%';
+      el.style.setProperty('--pct', pct);
+    });
+    updateCalc();
+
+    // ════════════════════════════════════════
+    // FEATURE 2 — GLOBAL COUNTER
+    // ════════════════════════════════════════
+    // ~R$55bi/ano mercado BR, ~15% taxa média, ~30% pedidos diretos
+    // estimativa: R$55bi * 0.15 * 0.3 / 365 dias / 86400s ≈ R$0.083/ms
+    const LOSS_PER_MS = 55e9 * 0.15 * 0.30 / 365 / 86400 / 1000;
+    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+    let counterBase = (Date.now() - startOfDay.getTime()) * LOSS_PER_MS;
+    const counterEl = document.getElementById('counter-val');
+    const globalCounter = document.getElementById('global-counter');
+    setInterval(() => {
+      counterBase += LOSS_PER_MS * 100;
+      counterEl.textContent = 'R$ ' + Math.round(counterBase).toLocaleString('pt-BR');
+    }, 100);
+    // show after 2s
+    setTimeout(() => globalCounter.classList.add('visible'), 2000);
+
+    // ════════════════════════════════════════
+    // FEATURE 4 — FALLING MONEY CANVAS
+    // ════════════════════════════════════════
+    const moneyCanvas = document.getElementById('money-canvas');
+    const ctx = moneyCanvas.getContext('2d');
+    let bills = [], moneyActive = false;
+
+    function resizeMoney() { moneyCanvas.width = window.innerWidth; moneyCanvas.height = window.innerHeight; }
+    resizeMoney();
+    window.addEventListener('resize', resizeMoney);
+
+    function spawnBill() {
+      return {
+        x: Math.random() * window.innerWidth,
+        y: -60,
+        vy: .4 + Math.random() * .6,
+        vx: (Math.random() - .5) * .4,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - .5) * .02,
+        alpha: .08 + Math.random() * .08,
+        size: 28 + Math.random() * 18,
+        char: ['💵', '💸', '💴'][Math.floor(Math.random() * 3)]
+      };
+    }
+
+    function drawMoney() {
+      ctx.clearRect(0, 0, moneyCanvas.width, moneyCanvas.height);
+      bills.forEach(b => {
+        ctx.save();
+        ctx.globalAlpha = b.alpha;
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.rot);
+        ctx.font = b.size + 'px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(b.char, 0, 0);
+        ctx.restore();
+        b.x += b.vx; b.y += b.vy; b.rot += b.vrot;
+      });
+      bills = bills.filter(b => b.y < window.innerHeight + 60);
+      if (moneyActive && bills.length < 28 && Math.random() < .08) bills.push(spawnBill());
+      requestAnimationFrame(drawMoney);
+    }
+    drawMoney();
+
+    // activate on pain section
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.create({
+      trigger: '#pain', start: 'top 60%', end: 'bottom 40%',
+      onEnter: () => { moneyActive = true; moneyCanvas.classList.add('active'); },
+      onLeave: () => { moneyActive = false; setTimeout(() => moneyCanvas.classList.remove('active'), 2000); },
+      onEnterBack: () => { moneyActive = true; moneyCanvas.classList.add('active'); },
+      onLeaveBack: () => { moneyActive = false; setTimeout(() => moneyCanvas.classList.remove('active'), 2000); }
+    });
+
+    // ════════════════════════════════════════
+    // GSAP ANIMATIONS
+    // ════════════════════════════════════════
+    const heroTl = gsap.timeline({ delay: .3 });
+    heroTl
+      .to('#h-eyebrow', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' })
+      .to('#h-title', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=.4')
+      .to('#h-sub', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' }, '-=.5')
+      .to('#live-calc', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' }, '-=.4')
+      .to('#h-cta', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' }, '-=.3')
+      .to('#h-numbers', { opacity: 1, duration: .6, ease: 'power2.out' }, '-=.2')
+      .to('#scroll-hint', { opacity: 1, duration: .5 }, '-=.1');
+
+    const bgTl = gsap.timeline({ scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: 2 } });
+    bgTl
+      .to('#bg-1', { opacity: 0, duration: 1 }, 0.1)
+      .to('#bg-2', { opacity: .5, duration: 1 }, 0.15)
+      .to('#bg-2', { opacity: 0, duration: 1 }, 0.55)
+      .to('#bg-3', { opacity: .45, duration: 1 }, 0.6);
+
+    gsap.utils.toArray('.reveal').forEach(el => { gsap.to(el, { opacity: 1, y: 0, duration: .9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 82%' } }); });
+    gsap.utils.toArray('.reveal-left').forEach(el => { gsap.to(el, { opacity: 1, x: 0, duration: .9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 82%' } }); });
+    gsap.utils.toArray('.reveal-right').forEach(el => { gsap.to(el, { opacity: 1, x: 0, duration: .9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 82%' } }); });
+    gsap.utils.toArray('.pain-card').forEach((c, i) => { gsap.to(c, { opacity: 1, x: 0, duration: .7, ease: 'power3.out', scrollTrigger: { trigger: c, start: 'top 86%' }, delay: i * .09 }); });
+    gsap.utils.toArray('.sol-card').forEach((c, i) => { gsap.to(c, { opacity: 1, y: 0, duration: .7, ease: 'power3.out', scrollTrigger: { trigger: c, start: 'top 88%' }, delay: i * .07 }); });
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+
+    // ════════════════════════════════════════
+    // FAQ
+    // ════════════════════════════════════════
+    function toggleFaq(el) {
+      const item = el.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    }
+
+    // ════════════════════════════════════════
+    // QUIZ STATE
+    // ════════════════════════════════════════
+    const WA_NUMBER = '5589994691009'; // ← troque pelo seu WhatsApp
+    const state = { step: 1, answers: {}, score: 0, ordersDay: 7, ticketVal: 22, feeVal: .15 };
+
+    function openQuiz() {
+      document.body.style.overflow = 'hidden';
+      document.getElementById('quizOverlay').classList.add('active');
+      // Esconde o bar mobile enquanto o quiz está aberto
+      const mbar = document.getElementById('mobile-cta-bar');
+      if (mbar) mbar.style.display = 'none';
+      resetQuiz();
+    }
+    function closeQuiz() {
+      document.body.style.overflow = '';
+      document.getElementById('quizOverlay').classList.remove('active');
+      // Reexibe o bar mobile ao fechar o quiz (só em mobile)
+      const mbar = document.getElementById('mobile-cta-bar');
+      if (mbar && window.innerWidth <= 900) mbar.style.display = 'block';
+    }
+    function resetQuiz() {
+      state.step = 1; state.answers = {}; state.score = 0; state.ordersDay = 7; state.ticketVal = 22; state.feeVal = .15;
+      document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('qs-1').classList.add('active');
+      document.getElementById('quiz-result').style.display = 'none';
+      document.getElementById('mock-preview').classList.remove('show');
+      document.getElementById('quiz-error').style.display = 'none';
+      updateProgress(1);
+    }
+    function updateProgress(step) {
+      for (let i = 1; i <= 7; i++) document.getElementById('dot-' + i).classList.toggle('done', i < step);
+    }
+    function goToStep(n) {
+      document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+      if (n <= 7) { document.getElementById('qs-' + n).classList.add('active'); updateProgress(n); }
+    }
+    function qAnswer(step, val, pts, extra) {
+      state.answers['step' + step] = val;
+      if (pts) state.score += pts;
+      if (step === 3 && extra !== undefined) state.ordersDay = extra;
+      if (step === 4 && extra !== undefined) state.ticketVal = extra;
+      if (step === 5 && extra !== undefined) state.feeVal = extra;
+      state.step = step + 1;
+      goToStep(state.step);
+    }
+
+    function submitQuiz() {
+      const business = document.getElementById('q-business').value.trim();
+      const phone = document.getElementById('q-phone').value.trim();
+      const errEl = document.getElementById('quiz-error');
+      if (!business || !phone) { errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      const city = document.getElementById('q-city').value.trim();
+      state.answers.business = business; state.answers.phone = phone; state.answers.city = city;
+
+      const score = Math.min(100, state.score);
+      const taxaMes = Math.round(state.ordersDay * 30 * state.ticketVal * state.feeVal);
+      let plan; if (state.ordersDay >= 30) plan = 'TURBO'; else if (state.ordersDay >= 10) plan = 'PADRÃO'; else plan = 'LEVE';
+
+      let msg;
+      if (score >= 80) msg = 'Você tem perfil perfeito para economizar rápido. O sistema se paga em menos de 30 dias.';
+      else if (score >= 60) msg = 'Bom perfil. Dá para migrar sem bagunçar a operação.';
+      else if (score >= 40) msg = 'Dá para fazer sentido — vamos ajustar o básico primeiro com você.';
+      else msg = 'Pode não ser prioridade agora, mas vamos te enviar o plano básico de qualquer forma.';
+
+      document.getElementById('r-score').textContent = score + '%';
+      document.getElementById('r-taxa').textContent = 'R$ ' + taxaMes.toLocaleString('pt-BR');
+      document.getElementById('r-plan').textContent = plan;
+      document.getElementById('r-msg').textContent = msg;
+
+      // ══ FEATURE 3: MOCK PREVIEW ══
+      const emojiMap = { Pizzaria: '🍕', Hamburgueria: '🍔', Marmitaria: '🥡', 'Açaí': '🍨', Outro: '🍽️' };
+      const tipo = state.answers.step1 || 'Outro';
+      const slug = business.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 20);
+      document.getElementById('mock-emoji').textContent = emojiMap[tipo] || '🍽️';
+      document.getElementById('mock-biz-name').textContent = business;
+      document.getElementById('mock-url').textContent = 'deliverysemtaxa.com/' + slug;
+      document.getElementById('mock-preview').classList.add('show');
+
+      const waText = encodeURIComponent(`Oi! Fiz o diagnóstico. Deu ${score}% qualificado. Estimativa de taxa: R$${taxaMes.toLocaleString('pt-BR')}/mês. Plano ${plan}. Estabelecimento: ${business}. Quero ver meu link pronto!`);
+      document.getElementById('r-wa-btn').href = `https://wa.me/${WA_NUMBER}?text=${waText}`;
+
+      document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('quiz-result').style.display = 'block';
+      for (let i = 1; i <= 7; i++) document.getElementById('dot-' + i).classList.add('done');
+
+      // score counter animation
+      let cur = 0; const interval = setInterval(() => { cur += Math.ceil((score - cur) / 8); if (cur >= score) { cur = score; clearInterval(interval); } document.getElementById('r-score').textContent = cur + '%'; }, 30);
+
+      // ══ FEATURE 6: SOUND + CELEBRATION for high scores ══
+      if (score >= 75) {
+        playCashSound();
+        triggerCelebration();
+      }
+
+      sendLead({ business, phone, city, score, taxaMes, plan, answers: state.answers });
+    }
+
+    // ════════════════════════════════════════
+    // FEATURE 6 — WEB AUDIO CASH REGISTER SOUND
+    // ════════════════════════════════════════
+    function playCashSound() {
+      try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        // "Cha-ching" simulation: two quick tones
+        const play = (freq, start, dur, gain) => {
+          const osc = ac.createOscillator();
+          const g = ac.createGain();
+          osc.connect(g); g.connect(ac.destination);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ac.currentTime + start);
+          osc.frequency.exponentialRampToValueAtTime(freq * .7, ac.currentTime + start + dur);
+          g.gain.setValueAtTime(0, ac.currentTime + start);
+          g.gain.linearRampToValueAtTime(gain, ac.currentTime + start + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + start + dur);
+          osc.start(ac.currentTime + start);
+          osc.stop(ac.currentTime + start + dur + .05);
+        };
+        // bell-like ching
+        play(1800, .00, .15, .25);
+        play(2200, .05, .12, .18);
+        play(1600, .12, .20, .15);
+        // subtle "pix received" ding
+        play(880, .30, .25, .12);
+        play(1100, .38, .20, .10);
+      } catch (e) { }
+    }
+
+    function triggerCelebration() {
+      const cel = document.getElementById('celebrate');
+      cel.classList.add('show');
+      setTimeout(() => cel.classList.remove('show'), 1200);
+    }
+
+    // ════════════════════════════════════════
+    // API SEND
+    // ════════════════════════════════════════
+    async function sendLead(data) {
+      try {
+        await fetch('https://diag-leads.jeslee940.workers.dev/leads', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            source: 'landing',
+            utm: { source: new URLSearchParams(location.search).get('utm_source'), medium: new URLSearchParams(location.search).get('utm_medium'), campaign: new URLSearchParams(location.search).get('utm_campaign') },
+            business_name: data.business, phone: data.phone, city: data.city,
+            consent: document.getElementById('q-consent').checked,
+            diagnostic: { has_ifood: data.answers.step2 === 'sim', orders_per_day: data.answers.step3, avg_ticket: data.answers.step4, fee_percent: data.answers.step5?.replace('%', ''), biggest_pain: data.answers.step6, notes: data.answers.step1 },
+            score: data.score, est_fee_monthly: data.taxaMes, recommended_plan: data.plan, ab_variant: headlines[abVariant].variant
+          })
+        });
+      } catch (e) { console.warn('API offline:', e); }
+    }
+
+    // ════════════════════════════════════════
+    // MISC
+    // ════════════════════════════════════════
+    document.getElementById('quizOverlay').addEventListener('click', function (e) { if (e.target === this) closeQuiz(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQuiz(); });
+
+    // Show/hide nav loss indicator based on scroll
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('nav-loss');
+      nav.classList.toggle('visible', window.scrollY > 100);
+    }, { passive: true });
+  </script>
+</body>
+
+</html>

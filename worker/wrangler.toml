@@ -1,0 +1,11 @@
+name = "diag-leads"
+main = "src/index.js"
+compatibility_date = "2024-09-25"
+
+[[d1_databases]]
+binding = "diag_leads"
+database_name = "diag-leads"
+database_id = "931bb7ae-2249-48f6-8e95-40cd7be3c52a"
+
+[vars]
+ADMIN_TOKEN = "admin-token-secret"

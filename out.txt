@@ -1,0 +1,3 @@
+Sending POST Request...
+HTTP 500
+{"error":"Internal server error","detail":"D1_ERROR: no such table: leads: SQLITE_ERROR"}
